@@ -2,6 +2,8 @@
 ## The algorithm to estimate the SLEM ##
 ########################################
 
+#Test Isaac 6/8/2016
+
 #Perform the shuffle walk
 shuffleWalk=function(A,u,M,T){
 
