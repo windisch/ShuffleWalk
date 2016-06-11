@@ -37,6 +37,17 @@ BasicMove=function(A,u,M,TT){
 return(X)
 }
 
+shuffleStep=function(u){
+  c=dim(u)[2]
+  cc=sample(1:c,size=2,replace=F)
+  c1=u[,cc[1]]
+  c2=u[,cc[2]]
+  u[,cc[1]]=c2
+  u[,cc[2]]=c1
+  return(u)     
+}
+
+
 ShuffleWalk=function(u,r,c){
   u=matrix(u,nrow=r,ncol=c,byrow=F)
   cc=sample(1:c,size=2,replace=F)
