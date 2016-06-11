@@ -2,42 +2,37 @@
 ## The algorithm to estimate the SLEM ##
 ########################################
 
-#Example
+#Intial table (All columns need to have the same sum.)
+u=matrix(c(1,1,1,
+           1,1,1,
+           1,1,1),nrow=3,ncol=3,byrow=T)
 
-A=matrix(c(1,1,1,0,0,0,
-           0,0,0,1,1,1,
-           1,0,0,1,0,0,
-           0,1,0,0,1,0,
-           0,0,1,0,0,1),nrow=5,ncol=6,byrow=T)
-M=markov(A)
-u=c(2,0,1,0,2,1)
-#number of rows
-r=3
-#number of columns
-c=2
+#How many step?
+TT=100
 
-#Perform the shuffle walk
-BasicMove=function(A,u,M,TT){
+#One step of diaconis Walk
 
-  samples=u
+DiaconisStep=function(u){
   X=u
-  #for (i in 1:TT){
+  r=dim(u)[1]
+  c=dim(u)[2]
+  rr=sample(1:r,size=2,replace = F)
+  cc=sample(1:c,size=2,replace = F)
+  t=sample(c(-1,1),size=1)
+  X[rr[1],cc[1]]=X[rr[1],cc[1]]+t
+  X[rr[2],cc[2]]=X[rr[2],cc[2]]+t
+  X[rr[1],cc[2]]=X[rr[1],cc[2]]-t
+  X[rr[2],cc[1]]=X[rr[2],cc[1]]-t
+  
+  if (all(X>=0)){
+            u=X
+          }
+return(u)
+  } 
 
-      s=sample(1:ncol(M),1)
-      t=sample(c(1,-1),1)
+#One step of Shuffle Walk
 
-      Xproposal=X+t*M[,s]
-
-      if (all(Xproposal>=0)){
-
-        X=Xproposal
-      } #close if statement
-     samples=rbind(samples,X)
-#   }#close for loop
-return(X)
-}
-
-shuffleStep=function(u){
+ShuffleStep=function(u){
   c=dim(u)[2]
   cc=sample(1:c,size=2,replace=F)
   c1=u[,cc[1]]
@@ -48,15 +43,23 @@ shuffleStep=function(u){
 }
 
 
-ShuffleWalk=function(u,r,c){
-  u=matrix(u,nrow=r,ncol=c,byrow=F)
-  cc=sample(1:c,size=2,replace=F)
-  c1=u[,cc[1]]
-  c2=u[,cc[2]]
-  u[,cc[1]]=c2
-  u[,cc[2]]=c1
-}
+#Mixed Shuffle Walk (print all TT tables obseved)
 
-MixShuffle=function(){
-  #######
+MixShuffle=function(u,TT){
+  
+  tables=list()
+  tables[[1]]=u
+  
+  for (i in 1:TT){
+    
+    walk=sample(c("D","S"),size=1)
+    
+    if (walk=="D"){
+      u=DiaconisStep(u)
+    } else if (walk=="S"){
+      u=ShuffleStep(u)
+    }
+    tables[[(i+1)]]=u
+  }
+  return(tables)
 }
