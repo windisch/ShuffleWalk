@@ -1,5 +1,5 @@
 ########################################
-## The algorithm to estimate the SLEM ##
+####### Mixed Shuffle Walk##############
 ########################################
 
 #Intial table (All columns need to have the same sum.)
