@@ -7,11 +7,10 @@ u=matrix(c(1,1,1,
            1,1,1,
            1,1,1),nrow=3,ncol=3,byrow=T)
 
-#How many step?
+#How many steps?
 TT=100
 
 #One step of diaconis Walk
-
 DiaconisStep=function(u){
   X=u
   r=dim(u)[1]
@@ -31,7 +30,6 @@ return(u)
   } 
 
 #One step of Shuffle Walk
-
 ShuffleStep=function(u){
   c=dim(u)[2]
   cc=sample(1:c,size=2,replace=F)
@@ -44,8 +42,7 @@ ShuffleStep=function(u){
 
 
 #Mixed Shuffle Walk (print all TT tables obseved)
-
-MixShuffle=function(u,TT){
+MixedShuffle=function(u,TT){
   
   tables=list()
   tables[[1]]=u
@@ -53,12 +50,11 @@ MixShuffle=function(u,TT){
   for (i in 1:TT){
     
     walk=sample(c("D","S"),size=1)
+    switch(sample(c("D","S"),size=1),
+        "D"={u=DiaconisStep(u)},
+        "S"={u=ShuffleStep(u)},
+            {print('default')})
     
-    if (walk=="D"){
-      u=DiaconisStep(u)
-    } else if (walk=="S"){
-      u=ShuffleStep(u)
-    }
     tables[[(i+1)]]=u
   }
   return(tables)
