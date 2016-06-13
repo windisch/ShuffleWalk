@@ -3,9 +3,9 @@
 ########################################
 
 #Intial table (All columns need to have the same sum.)
-u=matrix(c(1,5,3,
+u=matrix(c(3,5,3,
            2,7,7,
-           10,1,3),nrow=3,ncol=3,byrow=T)
+           8,1,3),nrow=3,ncol=3,byrow=T)
 
 #How many steps?
 TT=100
@@ -40,6 +40,14 @@ ShuffleStep=function(u){
   return(u)     
 }
 
+#One step of Mixed Shuffle Walk
+MixedShuffleStep=function(u){
+    switch(sample(c("D","S"),size=1),
+        "D"={u=DiaconisStep(u)},
+        "S"={u=ShuffleStep(u)})
+    return(u)
+    }
+
 #compute the rejection probability of MH-Algorihm
 metropolisRejection=function(u,v){
 #current state: u
@@ -73,31 +81,39 @@ chi2indep=function(u){
     return(X)
 }
 
-#Mixed Shuffle Walk (print all TT tables obseved)
-MixedShuffle=function(u,TT){
+#Estimate the p-value
+pValue=function(u,TT,method){
   
-#  tables=list()
-#  tables[[1]]=u
   Xu=chi2indep(u)
   X=c(1)
+  M=c(1)
+
+  if(missing(method)) {
+      method="MixedShuffle";    
+  }
   
-  for (i in 1:TT){
+  for (i in 2:TT){
     
-    switch(sample(c("D","S"),size=1),
-        "D"={v=DiaconisStep(u)},
-        "S"={v=ShuffleStep(u)})
-    
+#### Decide which sampling method to use #####
+    if(method=="MixedShuffle"){
+        v=MixedShuffleStep(u) 
+        } else {
+        v=DiaconisStep(u)
+        }
+##############################################
+
     #rejection probability
     q=metropolisRejection(u,v)
     if(sample(c(0,1),size=1,prob=c(q,1-q))==1){
         #do not reject
         u=v
         }
-
-#    tables[[(i+1)]]=u
     if(chi2indep(u)>=Xu){
          X=c(X,1)
-    }
+    } else {
+         X=c(X,0)
+        }
+    M=c(M,mean(X))
   }
-  return(sum(X)/TT)
+  return(M)
 }
