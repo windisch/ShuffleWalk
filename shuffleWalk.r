@@ -2,13 +2,13 @@
 ####### Mixed Shuffle Walk##############
 ########################################
 
-#Intial table (All columns need to have the same sum.)
-u=matrix(c(3,5,3,
-           2,7,7,
-           8,1,3),nrow=3,ncol=3,byrow=T)
 
-#How many steps?
-TT=100
+require(ggplot2)
+
+#Intial table (All columns need to have the same sum.)
+u=matrix(c(8,8,3,
+           3,5,8,
+           5,3,5),nrow=3,ncol=3,byrow=T)
 
 #One step of diaconis Walk
 DiaconisStep=function(u){
@@ -40,9 +40,35 @@ ShuffleStep=function(u){
   return(u)     
 }
 
+convPlot=function(df) {
+
+#print last 10 percent of steps
+n=round(0.10*nrow(df))
+x=1:n
+df=tail(df,n)
+
+g <- ggplot(df, aes(x))
+g <- g + ggtitle("Convergence plot")
+
+fet=fisher.test(u)$p.value
+g <- g + geom_hline(aes(yintercept=fet,lty="Fisher exact test"),show.legend=TRUE) 
+
+ch2=chisq.test(u)$p.value
+g <- g + geom_hline(aes(yintercept=ch2,lty="Chi2 test"),show.legend=TRUE) 
+
+g <- g + labs(x="Steps",y="p-value") 
+g <- g + geom_point(aes(y=df$MixedShuffle,colour="MixedShuffle"))
+g <- g + geom_point(aes(y=df$Diaconis,colour="Diaconis"))
+
+#remove legend
+g <- g + theme(legend.title=element_blank())
+
+g
+}
+
 #One step of Mixed Shuffle Walk
 MixedShuffleStep=function(u){
-    switch(sample(c("D","S"),size=1),
+    switch(sample(c("D","S"),size=1,prob=c(0.5,0.5)),
         "D"={u=DiaconisStep(u)},
         "S"={u=ShuffleStep(u)})
     return(u)
@@ -82,27 +108,26 @@ chi2indep=function(u){
 }
 
 #Estimate the p-value
-pValue=function(u,TT,method){
+pValue=function(u,TT){
   
   Xu=chi2indep(u)
-  X=c(1)
-  M=c(1)
+  cmethods <-c("Diaconis","MixedShuffle")
+  df <- data.frame(Diaconis=double(TT),MixedShuffle=double(TT))
 
-  if(missing(method)) {
-      method="MixedShuffle";    
-  }
-  
-  for (i in 2:TT){
+for(method in cmethods) {
+  X<-c(1)
+  for (i in 1:TT){
     
 #### Decide which sampling method to use #####
     if(method=="MixedShuffle"){
         v=MixedShuffleStep(u) 
-        } else {
+        }
+    if(method=="Diaconis") {
         v=DiaconisStep(u)
         }
 ##############################################
 
-    #rejection probability
+    #metropolis rejection step 
     q=metropolisRejection(u,v)
     if(sample(c(0,1),size=1,prob=c(q,1-q))==1){
         #do not reject
@@ -113,7 +138,10 @@ pValue=function(u,TT,method){
     } else {
          X=c(X,0)
         }
-    M=c(M,mean(X))
+   df[,method][i]=mean(X) 
+
   }
-  return(M)
+}
+
+  return(df)
 }
